@@ -24,4 +24,4 @@ Allows the player to either hit (draw a card) or stand (end their turn).
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/blackjack-api.git
+   git clone https://github.com/filip057/blackjack-api.git
