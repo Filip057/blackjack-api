@@ -3,13 +3,15 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 
-from django.http import HttpRequest
+from django.http import Http404, HttpRequest
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.core.exceptions import ValidationError
 
 from .models import Session, Game
 from .serializers import SessionSerializer, GameSerializer
-from .utils import get_session_and_game_ids
+from .utils.game_helpers import get_session_and_game_ids, place_bet_and_start_game, generate_bet_response, get_session_and_game
+from .utils.validators import validate_bet, validate_user_bank
 
 from game_manager.dealer import dealer
 
@@ -94,46 +96,30 @@ def get_session_info(request):
 
 @api_view(['GET'])
 def place_bet(request, bet_amount):
-    session_id, game_id = get_session_and_game_ids(request)
+    try:
+        session_id, game_id = get_session_and_game_ids(request)
+        session, game = get_session_and_game(session_id=session_id, game_id=game_id)
+        # Check if the bet has already been placed for the current game
+        if game.bet_placed:
+            return Response({'error': 'Bet has already been placed for this game'}, status=status.HTTP_400_BAD_REQUEST)
+        # validating if its correct bet and if player has enough in its bank 
+        validate_user_bank(session=session, bet_amount=bet_amount)
+        validate_bet(bet_amount)
+        # placing bet and adding 2 cards to player and dealer
+        place_bet_and_start_game(game, bet_amount)
+        return generate_bet_response(game)
 
-    bet = int(bet_amount)
+    except ValidationError as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Http404:
+        return Response({'error': 'Session not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Retrieve the session object or return 404 if not found
-    session = get_object_or_404(Session, session_id=session_id)
 
-    # Filter the Game objects associated with the session by game_id
-    game = get_object_or_404(Game, id=game_id, session=session)
-
-    # Check if the bet has already been placed for the current game
-    if game.bet_placed:
-        return Response({'error': 'Bet has already been placed for this game'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if not isinstance(bet, int):
-        return Response({'error': 'Bet must be a number', 'possible options': [ '10', '25', '50', '75', '100']}, status=status.HTTP_400_BAD_REQUEST)
-
-    #placing bet
-    game.bet = bet
-    game.bet_placed = True
-    game.save()
-
-    # adding first 2 cards 
-    dealer.start_game(hand=game.player_hand, game_cards=game.get_deck())
-    dealer.start_game(hand=game.dealer_hand, game_cards=game.get_deck())
-    game.save()
-
-    # Serialize the current game data
-    game_serializer = GameSerializer(game)
-
-    return Response({'message': 'Bet successfully placed', 'bet_amount': bet_amount, 'current_game': game_serializer.data})
-    
 @api_view(['GET'])
 def hit(request):
     session_id, game_id = get_session_and_game_ids(request)
     # Retrieve the session object or return 404 if not found
-    session = get_object_or_404(Session, session_id=session_id)
-
-    # Filter the Game objects associated with the session by game_id
-    game = get_object_or_404(Game, id=game_id, session=session)
+    session, game = get_session_and_game(session_id=session_id, game_id=game_id)
 
     player_hand = game.player_hand
     dealer.hit(hand=player_hand, game_cards=game.get_deck())
@@ -157,7 +143,7 @@ def hit(request):
 @api_view(['GET'])
 def stand(request):
     session_id, game_id = get_session_and_game_ids(request)
-    
+
     # Retrieve the session object or return 404 if not found
     session = get_object_or_404(Session, session_id=session_id)
 
