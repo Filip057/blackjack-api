@@ -9,6 +9,7 @@ from django.db import transaction
 
 from .models import Session, Game
 from .serializers import SessionSerializer, GameSerializer
+from .utils import get_session_and_game_ids
 
 from game_manager.dealer import dealer
 
@@ -33,7 +34,7 @@ def create_session(request):
 def start_new_game(request: HttpRequest):
     # Retrieve the session_id from URL request headers
     
-    session_id = request.headers.get('sid') # If session_id is in request headers
+    session_id, _ = get_session_and_game_ids(request) # If session_id is in request headers
 
     if session_id is None:
         return Response({'error': 'Session ID is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -60,7 +61,7 @@ def start_new_game(request: HttpRequest):
 @api_view(['GET'])
 def get_session_info(request):
     # Retrieve the session_id from URL request headers
-    session_id = request.headers.get('sid')  # If session_id is in request headers
+    session_id, _ = get_session_and_game_ids(request)  # If session_id is in request headers
     
 
     if session_id is None:
@@ -93,8 +94,7 @@ def get_session_info(request):
 
 @api_view(['GET'])
 def place_bet(request, bet_amount):
-    session_id = request.headers.get('sid')
-    game_id = request.headers.get('gid')
+    session_id, game_id = get_session_and_game_ids(request)
 
     bet = int(bet_amount)
 
@@ -128,9 +128,7 @@ def place_bet(request, bet_amount):
     
 @api_view(['GET'])
 def hit(request):
-    session_id = request.headers.get('sid')
-    game_id = request.headers.get('gid')
-
+    session_id, game_id = get_session_and_game_ids(request)
     # Retrieve the session object or return 404 if not found
     session = get_object_or_404(Session, session_id=session_id)
 
@@ -158,9 +156,8 @@ def hit(request):
 
 @api_view(['GET'])
 def stand(request):
-    session_id = request.headers.get('sid')
-    game_id = request.headers.get('gid')
-
+    session_id, game_id = get_session_and_game_ids(request)
+    
     # Retrieve the session object or return 404 if not found
     session = get_object_or_404(Session, session_id=session_id)
 
