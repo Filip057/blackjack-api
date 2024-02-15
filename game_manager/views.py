@@ -18,16 +18,16 @@ import uuid
 
 @api_view(['POST'])
 def create_session(request):
-    if request.method == 'POST':
-        username = request.data.get('username', None)
-        if username is None:
-            return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    username = request.data.get('username', None)
+    if username is None:
+         return Response({'error': 'Username is required'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Create a new session with the provided username and session id
-        session_id = uuid.uuid4()
-        session = Session.objects.create(username=username, session_id = session_id)
-        serializer = SessionSerializer(session)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    session_id = uuid.uuid4()
+    session = Session.objects.create(username=username, session_id = session_id)
+    serializer = SessionSerializer(session)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
     
 @api_view(['GET'])
 def start_new_game(request: HttpRequest):
