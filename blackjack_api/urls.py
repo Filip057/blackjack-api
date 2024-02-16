@@ -19,7 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('session/', include('game_manager.urls')),
-    path('playground/', include('playground.urls')),
+    path('session/', include('game_manager.urls', namespace='game_manager')),
+    path('playground/', include('playground.urls', namespace='playground')),
 
 ]

@@ -15,14 +15,14 @@ class Game(models.Model):
     bet_placed = models.BooleanField(default=False)
     bet = models.PositiveIntegerField(choices=[
         (10, '10'),
-        (20, '25'),
+        (25, '25'),
         (50, '50'),
         (75, '75'),
         (100, '100'),
         ], default=0)
     player_hand = models.JSONField(default=list)
     dealer_hand = models.JSONField(default=list)
-    winner = models.CharField(max_length=50, default='', null=True)
+    winner = models.CharField(max_length=50, blank=True, null=True)
     deck = models.TextField(default=json.dumps(['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'] * 4))
 
     def get_deck(self):

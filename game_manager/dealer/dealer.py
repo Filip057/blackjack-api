@@ -1,5 +1,6 @@
 import random
 
+from django.db import transaction
 
 from models import Game
 
@@ -53,11 +54,13 @@ def count_score(hand: list):
 
 
 def play_dealer_hand(game: Game):
-    dealer_score = count_score(game.dealer_hand)
-    while dealer_score <= 16:
-        hit(hand=game.dealer_hand, game_cards=game.get_deck())
-        game.save()
+    with transaction.atomic():
         dealer_score = count_score(game.dealer_hand)
+        while dealer_score <= 16:
+            hit(hand=game.dealer_hand, game_cards=game.get_deck())
+            dealer_score = count_score(game.dealer_hand)
+        # The game state is updated in memory and saved once at the end
+        game.save()
 
 
 def check_if_burst(score: int) -> bool:
