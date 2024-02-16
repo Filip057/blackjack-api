@@ -146,6 +146,9 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
+        'console':{
+            'class': 'logging.StreamHandler'
+        },
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
@@ -158,5 +161,19 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+        'game_manager': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING'
+        }
+    },
+    'formatters':{
+        'verbose':{
+            'format': '{asctime} ({levelname}) - {name}: {message}'
+        },
     },
 }
+
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
