@@ -2,7 +2,7 @@ import random
 
 from django.db import transaction
 
-from models import Game
+from game_manager.models import Game
 
 CARD_VALUE = {
     '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
@@ -21,6 +21,8 @@ def start_game(hand: list, game_cards:list):
     second_card = random.choice(game_cards)
     hand.append(second_card)
     game_cards.remove(second_card)
+
+    
 
 def hit(hand: list, game_cards: list):
     card = random.choice(game_cards)

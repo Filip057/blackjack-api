@@ -3,6 +3,7 @@ from django.urls import path
 
 from . import views
 
+app_name = 'game_manager' 
 
 urlpatterns = [
     path('create/', views.create_session, name='create_session'),
