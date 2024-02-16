@@ -145,14 +145,22 @@ REST_FRAMEWORK = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters':{
+        'verbose':{
+            'format': '{asctime} ({levelname}) - {name}: {message}',
+            'style': '{'
+        },
+    },
     'handlers': {
         'console':{
-            'class': 'logging.StreamHandler'
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
             'filename': 'logs/django_errors.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
@@ -165,11 +173,6 @@ LOGGING = {
             'handlers': ['file', 'console'],
             'level': 'WARNING'
         }
-    },
-    'formatters':{
-        'verbose':{
-            'format': '{asctime} ({levelname}) - {name}: {message}'
-        },
     },
 }
 
