@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from rest_framework.response import Response
 
@@ -31,3 +32,15 @@ def place_bet_and_start_game(game: Game, bet_amount):
 def generate_bet_response(game):
     game_serializer = GameSerializer(game)
     return Response({'message': 'Bet successfully placed', 'current_game': game_serializer.data})
+
+def update_game_result(game: Game, result, session: Session):
+    """Updates the game result and session bank."""
+    bet_result = {0: -1, 1: 1, 2: 0}
+    outcome = {0: 'Dealer', 1: 'Player', 2: 'Tie'}
+    
+    with transaction.atomic():
+        game.is_over = True
+        game.winner = outcome[result]
+        session.bank += game.bet * bet_result[result]
+        session.save()
+        game.save()

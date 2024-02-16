@@ -1,7 +1,7 @@
 import random
 
 
-
+from models import Game
 
 CARD_VALUE = {
     '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
@@ -30,11 +30,11 @@ def hit(hand: list, game_cards: list):
 def count_score(hand: list):
     score = 0
     num_aces = 0
-    if not 'A' in hand:
-        for card in hand:
+    for card in hand:
+        if card != 'A':
             score += CARD_VALUE[card]
-    else: 
-        num_aces += 1
+        else: 
+            num_aces += 1
     
     # Add Aces to the score, treating them optimally as either 1 or 11
     if num_aces > 0:
@@ -51,7 +51,16 @@ def count_score(hand: list):
 
     return score
 
-def check_if_burts(score: int) -> bool:
+
+def play_dealer_hand(game: Game):
+    dealer_score = count_score(game.dealer_hand)
+    while dealer_score <= 16:
+        hit(hand=game.dealer_hand, game_cards=game.get_deck())
+        game.save()
+        dealer_score = count_score(game.dealer_hand)
+
+
+def check_if_burst(score: int) -> bool:
     """
     check the score after each hit
     """
@@ -60,7 +69,7 @@ def check_if_burts(score: int) -> bool:
         burst = True
     return burst
 
-def evaluate(player_score: int, dealer_score: int) ->int:
+def evaluate(game: Game) ->int:
     """
     evaluate after stand 
     it returns [0, 1, 2]
@@ -68,6 +77,8 @@ def evaluate(player_score: int, dealer_score: int) ->int:
     1 user wins 
     2 tie
     """
+    dealer_score = count_score(hand=game.dealer_hand)
+    player_score = count_score(hand=game.player_hand)
 
     diff = dealer_score - player_score
     if player_score > 21:
@@ -78,3 +89,4 @@ def evaluate(player_score: int, dealer_score: int) ->int:
         return 0
     else:
         return 1
+
