@@ -16,7 +16,7 @@ DATABASES = {
         'NAME': 'blackjack',
         'USER': 'root',
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': 'localhost',   # Or the MySQL server host
+        'HOST': 'mysql',   # Or the MySQL server host
         'PORT': '3306',        # Or the MySQL server port
     }
 }
